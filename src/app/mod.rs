@@ -1,3 +1,4 @@
+use leptos::logging::{error, log};
 use leptos::{logging, prelude::*, task::spawn_local};
 use leptos_meta::{provide_meta_context, Stylesheet, Title};
 use leptos_router::{
@@ -39,9 +40,42 @@ fn HomePage() -> impl IntoView {
             test_server().await;
         })
     };
+    let dev_resource = LocalResource::new(move || async {
+        log!("refresh");
+        match list_devices().await {
+            Ok(devices) => devices,
+            Err(e) => {
+                error!("Error from server: {:?}", e);
+                Vec::new()
+            }
+        }
+    });
 
     view! {
         <h1>"Welcome to Leptos!"</h1>
+        <aside>
+            <nav>
+                <ul>
+                    {move || {
+                        dev_resource
+                            .get()
+                            .iter()
+                            .flatten()
+                            .map(|device| {
+                                view! {
+                                    <li>
+                                        <a href=format!(
+                                            "/device/{}",
+                                            device.0,
+                                        )>{device.1.clone()}</a>
+                                    </li>
+                                }
+                            })
+                            .collect_view()
+                    }}
+                </ul>
+            </nav>
+        </aside>
         <nav>
             <ul>
                 <li>
@@ -79,4 +113,10 @@ fn NotFound() -> impl IntoView {
 async fn test_server() -> Result<(), ServerFnError> {
     logging::log!("test_server");
     Ok(())
+}
+
+#[server]
+async fn list_devices() -> Result<Vec<(u32, String)>, ServerFnError> {
+    let devices = crate::server::list_devices().await?;
+    Ok(devices)
 }
