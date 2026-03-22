@@ -1,10 +1,57 @@
-use leptos::logging::{error, log};
-use leptos::{logging, prelude::*, task::spawn_local};
-use leptos_meta::{provide_meta_context, Stylesheet, Title};
+mod components;
+mod pages;
+use crate::app::components::menu_entry::RouterMainMenuEntry;
+use crate::app::components::sidebar::SidebarMenu;
+use crate::app::pages::device::DevicePage;
+use crate::model::GoogleCredentials;
+#[cfg(feature = "ssr")]
+use crate::server::google_credentials;
+use leptos::hydration::HydrationScripts;
+use leptos::{
+    component,
+    hydration::AutoReload,
+    logging::{error, log},
+    prelude::{
+        expect_context, server, server_fn, ClassAttribute, CollectView, ElementChild, Get,
+        GlobalAttributes, LeptosOptions, LocalResource, OnAttribute, RwSignal, ServerFnError,
+        Write,
+    },
+    task::spawn_local,
+    view, IntoView,
+};
+use leptos_meta::{provide_meta_context, MetaTags, Title};
 use leptos_router::{
     components::{Route, Router, Routes},
-    StaticSegment, WildcardSegment,
+    path, StaticSegment, WildcardSegment,
 };
+pub fn shell(options: LeptosOptions) -> impl IntoView {
+    view! {
+        <!DOCTYPE html>
+        // "dark" Klasse für Tailwind V4/V3
+        <html lang="en" class="dark">
+            <head>
+                <meta charset="utf-8" />
+                <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+                <link
+                    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap"
+                    rel="stylesheet"
+                />
+                <link
+                    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+                    rel="stylesheet"
+                />
+                <link id="leptos" href="/pkg/vxlan-provisioner-leptos.css" rel="stylesheet" />
+                <AutoReload options=options.clone() />
+                <HydrationScripts options=options.clone() />
+                <MetaTags />
+            </head>
+            // Hier direkt die Klassen für das Sentinel-Design setzen
+            <body class="bg-background text-on-surface">
+                <App />
+            </body>
+        </html>
+    }
+}
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -13,15 +60,14 @@ pub fn App() -> impl IntoView {
     view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href="/pkg/vxlan-provisioner-leptos.css" />
-
-        // sets the document title
         <Title text="Welcome to Leptos" />
         // content for this welcome page
         <Router>
-            <main>
+            <SidebarMenu />
+            <main class="ml-64 p-8 min-h-screen bg-background text-on-surface">
                 <Routes fallback=move || "Not found.">
                     <Route path=StaticSegment("") view=HomePage />
+                    <Route path=path!("/device/:device_id") view=DevicePage />
                     <Route path=WildcardSegment("any") view=NotFound />
                 </Routes>
             </main>
@@ -35,20 +81,18 @@ fn HomePage() -> impl IntoView {
     // Creates a reactive value to update the button
     let count = RwSignal::new(0);
     let on_click = move |_| *count.write() += 1;
+    LocalResource::new(move || async {});
     let server_lick = move |_| {
         spawn_local(async {
-            test_server().await;
+            login_settings().await;
         })
     };
     let dev_resource = LocalResource::new(move || async {
         log!("refresh");
-        match list_devices().await {
-            Ok(devices) => devices,
-            Err(e) => {
-                error!("Error from server: {:?}", e);
-                Vec::new()
-            }
-        }
+        list_devices().await.unwrap_or_else(|e| {
+            error!("Error from server: {:?}", e);
+            Vec::new()
+        })
     });
 
     view! {
@@ -110,13 +154,13 @@ fn NotFound() -> impl IntoView {
 }
 
 #[server]
-async fn test_server() -> Result<(), ServerFnError> {
-    logging::log!("test_server");
-    Ok(())
+async fn login_settings() -> Result<GoogleCredentials, ServerFnError> {
+    Ok(google_credentials())
 }
 
 #[server]
 async fn list_devices() -> Result<Vec<(u32, String)>, ServerFnError> {
     let devices = crate::server::list_devices().await?;
+    log!("Found {} devices", devices.len());
     Ok(devices)
 }

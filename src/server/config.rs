@@ -1,6 +1,7 @@
+use crate::model::GoogleCredentials;
 use config::{Config, ConfigError, Environment, File};
 use lazy_static::lazy_static;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Deserialize)]
@@ -8,6 +9,7 @@ pub struct Settings {
     pub netbox_url: String,
     pub netbox_token: String,
     pub mikrotik_credentials: HashMap<Box<str>, MikrotikCredentials>,
+    pub google_credentials: GoogleCredentials,
 }
 
 #[derive(Deserialize)]

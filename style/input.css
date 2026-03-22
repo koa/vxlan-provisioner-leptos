@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@theme {
+    /* Farben direkt aus deinem DESIGN.md */
+    --color-surface: #0b1326;
+    --color-surface-low: #131b2e;
+    --color-surface-container: #171f33;
+    --color-surface-highest: #2d3449;
+
+    --color-primary: #7bd0ff;
+    --color-tertiary: #4edea3;
+    --color-error: #ffb4ab;
+    --color-on-surface: #dae2fd;
+
+    --font-headline: "Space Grotesk", sans-serif;
+    --font-body: "Inter", sans-serif;
+}
+
+@layer components {
+    .terminal-window {
+        /* Jetzt kennt Tailwind 'bg-surface-highest' durch das @theme oben */
+        @apply bg-surface-highest rounded-sm p-8 font-mono text-sm leading-relaxed border-l border-primary/20 shadow-inner relative overflow-y-auto max-h-[600px];
+    }
+
+    .btn-primary-sentinel {
+        /* Umsetzung der Primary Button Regel */
+        @apply bg-primary text-surface hover:brightness-110 transition-all px-6 py-3 rounded font-bold text-xs uppercase tracking-widest flex items-center gap-3;
+    }
+
+    .nav-item {
+        /* Basis-Stil (Inaktiv) */
+        @apply flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-[#dae2fd] hover:bg-[#2d3449] transition-all duration-200;
+
+        /* Aktiv-Stil: Wenn aria-current="page" gesetzt ist */
+
+        &[aria-current="page"] {
+            @apply bg-surface-container text-primary font-bold border-r-2 border-primary transition-transform active:scale-[0.99];
+        }
+    }
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #0b1326;
+    color: #dae2fd;
+}
+
+.font-space-grotesk {
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.terminal-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+
+.terminal-scroll::-webkit-scrollbar-track {
+    background: #060e20;
+}
+
+.terminal-scroll::-webkit-scrollbar-thumb {
+    background: #2d3449;
+    border-radius: 10px;
+}

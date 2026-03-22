@@ -29,26 +29,7 @@ async fn main() -> std::io::Result<()> {
             .service(favicon)
             .leptos_routes(routes, {
                 let leptos_options = leptos_options.clone();
-                move || {
-                    view! {
-                        <!DOCTYPE html>
-                        <html lang="en">
-                            <head>
-                                <meta charset="utf-8" />
-                                <meta
-                                    name="viewport"
-                                    content="width=device-width, initial-scale=1"
-                                />
-                                <AutoReload options=leptos_options.clone() />
-                                <HydrationScripts options=leptos_options.clone() />
-                                <MetaTags />
-                            </head>
-                            <body>
-                                <App />
-                            </body>
-                        </html>
-                    }
-                }
+                move || shell(leptos_options.clone())
             })
             .app_data(web::Data::new(leptos_options.to_owned()))
         //.wrap(middleware::Compress::default())
