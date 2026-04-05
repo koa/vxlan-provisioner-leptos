@@ -4173,6 +4173,7 @@ dependencies = [
  "leptos_actix",
  "leptos_meta",
  "leptos_router",
+ "log",
  "mikrotik-model",
  "reqwest",
  "serde",

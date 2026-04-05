@@ -1,15 +1,23 @@
+use std::env::current_dir;
+use std::fs;
+use leptos::svg::feSpecularLighting;
+use log::info;
+
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     use actix_files::Files;
     use actix_web::*;
     use leptos::config::get_configuration;
-    use leptos::prelude::*;
     use leptos_actix::{generate_route_list, LeptosRoutes};
     use leptos_meta::MetaTags;
     use vxlan_provisioner_leptos::app::*;
 
     let conf = get_configuration(None).unwrap();
+    println!("Leptos: {:?}", conf);
+    let dir = current_dir();
+    println!("Current directory: {:?}", dir);
+
     let addr = conf.leptos_options.site_addr;
 
     HttpServer::new(move || {
