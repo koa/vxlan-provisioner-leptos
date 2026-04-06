@@ -1,16 +1,16 @@
+pub mod auth_context;
 mod components;
 mod pages;
-use crate::app::components::menu_entry::RouterMainMenuEntry;
-use crate::app::components::sidebar::SidebarMenu;
-use crate::app::pages::device::DevicePage;
-use crate::model::GoogleCredentials;
-#[cfg(feature = "ssr")]
-use crate::server::google_credentials;
-use leptos::hydration::HydrationScripts;
+
+use crate::app::{
+    auth_context::provide_auth,
+    components::{menu_entry::RouterMainMenuEntry, sidebar::SidebarMenu},
+    pages::device::DevicePage,
+};
 use leptos::{
     component,
-    hydration::AutoReload,
-    logging::{error, log},
+    hydration::{AutoReload, HydrationScripts},
+    logging::log,
     prelude::{
         expect_context, server, server_fn, ClassAttribute, CollectView, ElementChild, Get,
         GlobalAttributes, LeptosOptions, LocalResource, OnAttribute, RwSignal, ServerFnError,
@@ -19,11 +19,17 @@ use leptos::{
     task::spawn_local,
     view, IntoView,
 };
+#[cfg(feature = "hydrate")]
+use leptos::{
+    logging::error,
+    prelude::{use_context, Effect, Set},
+};
 use leptos_meta::{provide_meta_context, MetaTags, Title};
 use leptos_router::{
     components::{Route, Router, Routes},
     path, StaticSegment, WildcardSegment,
 };
+
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
         <!DOCTYPE html>
@@ -41,6 +47,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                     rel="stylesheet"
                 />
                 <link id="leptos" href="/pkg/vxlan-provisioner-leptos.css" rel="stylesheet" />
+                <script src="https://accounts.google.com/gsi/client" async defer></script>
                 <AutoReload options=options.clone() />
                 <HydrationScripts options=options.clone() />
                 <MetaTags />
@@ -57,6 +64,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
+    provide_auth();
     view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
@@ -84,15 +92,16 @@ fn HomePage() -> impl IntoView {
     LocalResource::new(move || async {});
     let server_lick = move |_| {
         spawn_local(async {
-            login_settings().await;
+            //login_settings().await;
         })
     };
     let dev_resource = LocalResource::new(move || async {
         log!("refresh");
-        list_devices().await.unwrap_or_else(|e| {
+        Vec::<(u32, String)>::new()
+        /*list_devices().await.unwrap_or_else(|e| {
             error!("Error from server: {:?}", e);
             Vec::new()
-        })
+        })*/
     });
 
     view! {
@@ -154,13 +163,7 @@ fn NotFound() -> impl IntoView {
 }
 
 #[server]
-async fn login_settings() -> Result<GoogleCredentials, ServerFnError> {
-    Ok(google_credentials())
-}
-
-#[server]
-async fn list_devices() -> Result<Vec<(u32, String)>, ServerFnError> {
-    let devices = crate::server::list_devices().await?;
-    log!("Found {} devices", devices.len());
+async fn list_devices(token: Box<str>) -> Result<Vec<(u32, String)>, ServerFnError> {
+    let devices = crate::server::list_devices(token.as_ref()).await?;
     Ok(devices)
 }

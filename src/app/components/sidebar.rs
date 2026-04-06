@@ -1,23 +1,30 @@
-use crate::app::list_devices;
-use crate::app::RouterMainMenuEntry;
-use leptos::leptos_dom::{error, log};
-use leptos::prelude::ClassAttribute;
-use leptos::prelude::CollectView;
-use leptos::prelude::Get;
-use leptos::prelude::{ElementChild, LocalResource};
-use leptos::{component, view, IntoView};
+use crate::app::{auth_context::AuthContext, list_devices, RouterMainMenuEntry};
+use leptos::{
+    component,
+    leptos_dom::error,
+    prelude::{ClassAttribute, CollectView, ElementChild, Get, LocalResource},
+    view, IntoView,
+};
 
 #[component]
 pub fn SidebarMenu() -> impl IntoView {
-    let known_devices = LocalResource::new(move || async {
+    let known_devices = LocalResource::new(move || {
         //log!("refresh");
-        let mut devices = list_devices().await.unwrap_or_else(|e| {
-            error!("Error from server: {:?}", e);
-            Vec::new()
-        });
-        devices.sort_by(|(_,a),(_,b)| a.cmp(b));
-        devices
+        let valid_token = AuthContext::valid_token();
+        async move {
+            if let Some(token) = valid_token {
+                let mut devices = list_devices(token).await.unwrap_or_else(|e| {
+                    error!("Error from server: {:?}", e);
+                    Vec::new()
+                });
+                devices.sort_by(|(_, a), (_, b)| a.cmp(b));
+                devices
+            } else {
+                Default::default()
+            }
+        }
     });
+
     view! {
         <aside class="fixed left-0 top-0 h-screen w-64 bg-slate-900 dark:bg-[#0b1326] z-40 flex flex-col border-r border-slate-800/50">
             <div class="p-6 flex-shrink-0">

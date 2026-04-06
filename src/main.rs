@@ -1,6 +1,7 @@
-use std::env::current_dir;
-use std::fs;
-use leptos::svg::feSpecularLighting;
+//use leptos::svg::feSpecularLighting;
+//use log::info;
+//use std::fs;
+
 use log::info;
 
 #[cfg(feature = "ssr")]
@@ -10,13 +11,18 @@ async fn main() -> std::io::Result<()> {
     use actix_web::*;
     use leptos::config::get_configuration;
     use leptos_actix::{generate_route_list, LeptosRoutes};
-    use leptos_meta::MetaTags;
+    use std::env::current_dir;
     use vxlan_provisioner_leptos::app::*;
 
+    env_logger::builder()
+        .parse_env(env_logger::Env::default().filter_or("LOG_LEVEL", "info"))
+        .format_timestamp(Some(env_logger::TimestampPrecision::Millis))
+        .init();
+
     let conf = get_configuration(None).unwrap();
-    println!("Leptos: {:?}", conf);
+    info!("Leptos: {:?}", conf);
     let dir = current_dir();
-    println!("Current directory: {:?}", dir);
+    info!("Current directory: {:?}", dir);
 
     let addr = conf.leptos_options.site_addr;
 

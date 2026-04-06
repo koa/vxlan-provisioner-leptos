@@ -1,7 +1,6 @@
-use leptos::prelude::AddAnyAttr;
 use leptos::{
     component,
-    prelude::{ClassAttribute, Component, CustomAttribute, ElementChild},
+    prelude::{AddAnyAttr, ClassAttribute, CustomAttribute, ElementChild},
     view, IntoView,
 };
 use leptos_router::components::A;

@@ -1,6 +1,4 @@
-use cynic::http::CynicReqwestError;
-use cynic::GraphQlError;
-use mikrotik_model::error::Error;
+use cynic::{http::CynicReqwestError, GraphQlError};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -24,4 +22,22 @@ pub enum CommunicationError {
     Mikrotik(#[from] mikrotik_model::mikrotik_api::Error),
     #[error("mikrotik model error {0}")]
     MikrotikModel(#[from] mikrotik_model::error::Error),
+}
+#[derive(Debug, Error)]
+pub enum AuthError {
+    #[error("Cannot parse JWT: {0}")]
+    JsonWebTokenError(#[from] jsonwebtoken::errors::Error),
+    #[error("Missing header 'kid")]
+    MissingHeaderKid,
+    #[error("Missing Key with matching kid")]
+    MissingMatchingKey,
+    #[error("Error from reqwest: {0}")]
+    ReqwestError(#[from] reqwest::Error),
+}
+#[derive(Debug, Error)]
+pub enum ServerError {
+    #[error("Error from netbox: {0}")]
+    Netbox(#[from] NetboxError),
+    #[error("Error on authentication: {0}")]
+    Auth(#[from] AuthError),
 }

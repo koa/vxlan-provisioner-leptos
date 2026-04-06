@@ -1,7 +1,7 @@
 use crate::model::GoogleCredentials;
 use config::{Config, ConfigError, Environment, File};
 use lazy_static::lazy_static;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::collections::HashMap;
 
 #[derive(Deserialize)]
