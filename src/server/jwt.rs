@@ -1,7 +1,6 @@
 use crate::{model::jwt::Claims, server::error::AuthError, server::google_issuer};
 use cached::proc_macro::cached;
 use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
-use log::info;
 use serde::Deserialize;
 use std::{sync::Arc, time::Duration};
 

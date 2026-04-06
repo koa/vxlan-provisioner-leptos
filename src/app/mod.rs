@@ -7,23 +7,21 @@ use crate::app::{
     components::{menu_entry::RouterMainMenuEntry, sidebar::SidebarMenu},
     pages::device::DevicePage,
 };
+use crate::model::device::DeviceListEntry;
+#[cfg(feature = "ssr")]
+use leptos::prelude::{expect_context, server_fn};
 use leptos::{
     component,
     hydration::{AutoReload, HydrationScripts},
     logging::log,
     prelude::{
-        expect_context, server, server_fn, ClassAttribute, CollectView, ElementChild, Get,
-        GlobalAttributes, LeptosOptions, LocalResource, OnAttribute, RwSignal, ServerFnError,
-        Write,
+        server, ClassAttribute, CollectView, ElementChild, Get, GlobalAttributes, LeptosOptions,
+        LocalResource, OnAttribute, RwSignal, ServerFnError, Write,
     },
     task::spawn_local,
     view, IntoView,
 };
-#[cfg(feature = "hydrate")]
-use leptos::{
-    logging::error,
-    prelude::{use_context, Effect, Set},
-};
+
 use leptos_meta::{provide_meta_context, MetaTags, Title};
 use leptos_router::{
     components::{Route, Router, Routes},
@@ -47,7 +45,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                     rel="stylesheet"
                 />
                 <link id="leptos" href="/pkg/vxlan-provisioner-leptos.css" rel="stylesheet" />
-                <script src="https://accounts.google.com/gsi/client" async defer></script>
+                <script src="https://accounts.google.com/gsi/client" defer></script>
                 <AutoReload options=options.clone() />
                 <HydrationScripts options=options.clone() />
                 <MetaTags />
@@ -163,7 +161,6 @@ fn NotFound() -> impl IntoView {
 }
 
 #[server]
-async fn list_devices(token: Box<str>) -> Result<Vec<(u32, String)>, ServerFnError> {
-    let devices = crate::server::list_devices(token.as_ref()).await?;
-    Ok(devices)
+async fn list_devices(token: Box<str>) -> Result<Vec<DeviceListEntry>, ServerFnError> {
+    Ok(crate::server::list_devices(token.as_ref()).await?)
 }

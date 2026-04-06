@@ -1,3 +1,4 @@
+use crate::model::device::DeviceRole as RoleEnum;
 use cynic::impl_scalar;
 use ipnet::IpNet;
 use serde::{Deserialize, Serialize};
@@ -15,6 +16,8 @@ mod schema {}
 
 id::create_id!(VxlanId);
 id::create_id!(DeviceId);
+id::create_id!(DeviceTypeId);
+id::create_id!(DeviceRoleId);
 id::create_id!(InterfaceId);
 id::create_id!(VlanId);
 id::create_id!(TenantId);
@@ -62,6 +65,9 @@ impl From<Query> for TopologyData {
 pub struct DeviceData {
     pub id: DeviceId,
     pub name: Option<String>,
+    #[cynic(rename = "device_type")]
+    pub device_type: DeviceType,
+    pub role: DeviceRole,
     #[cynic(rename = "primary_ip4")]
     pub primary_ip4: Option<IpAddressData>,
     #[cynic(rename = "primary_ip6")]
@@ -77,6 +83,29 @@ impl DeviceData {
         self.primary_ip6.or(self.primary_ip4)
     }
 }
+#[derive(cynic::QueryFragment, Debug, PartialEq, Eq, Clone)]
+#[cynic(graphql_type = "DeviceTypeType")]
+pub struct DeviceType {
+    pub id: DeviceTypeId,
+    pub display: String,
+}
+#[derive(cynic::QueryFragment, Debug, PartialEq, Eq, Clone)]
+#[cynic(graphql_type = "DeviceRoleType")]
+pub struct DeviceRole {
+    pub id: DeviceRoleId,
+}
+
+impl DeviceRole {
+    pub fn parse_role(&self) -> Option<RoleEnum> {
+        match self.id.0 {
+            1 => Some(RoleEnum::Router),
+            2 => Some(RoleEnum::Switch),
+            10 => Some(RoleEnum::AccessPoint),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Clone, PartialEq, Eq, Hash)]
 pub struct DeviceCustomFields {
     wlan_group: Option<u32>,

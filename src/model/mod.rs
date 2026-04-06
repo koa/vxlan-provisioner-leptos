@@ -1,3 +1,4 @@
+pub mod device;
 pub mod jwt;
 
 use serde::{Deserialize, Serialize};

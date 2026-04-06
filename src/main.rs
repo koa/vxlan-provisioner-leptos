@@ -1,8 +1,4 @@
-//use leptos::svg::feSpecularLighting;
-//use log::info;
-//use std::fs;
 
-use log::info;
 
 #[cfg(feature = "ssr")]
 #[actix_web::main]
@@ -13,6 +9,7 @@ async fn main() -> std::io::Result<()> {
     use leptos_actix::{generate_route_list, LeptosRoutes};
     use std::env::current_dir;
     use vxlan_provisioner_leptos::app::*;
+    use log::info;
 
     env_logger::builder()
         .parse_env(env_logger::Env::default().filter_or("LOG_LEVEL", "info"))

@@ -1,3 +1,4 @@
+use crate::model::device::DeviceListEntry;
 use crate::server::error::ServerError;
 use crate::{
     model::GoogleCredentials,
@@ -11,7 +12,7 @@ mod error;
 mod graphql;
 pub mod jwt;
 
-pub async fn list_devices(token: &str) -> Result<Vec<(u32, String)>, Arc<ServerError>> {
+pub async fn list_devices(token: &str) -> Result<Vec<DeviceListEntry>, Arc<ServerError>> {
     let result = validate_token(token).await;
     info!("Token claims: {:?}", result);
     result.map_err(|e| Arc::new(e.into()))?;
@@ -19,7 +20,14 @@ pub async fn list_devices(token: &str) -> Result<Vec<(u32, String)>, Arc<ServerE
     let devices = topology
         .device
         .values()
-        .filter_map(|device| device.name.as_ref().map(|name| (device.id.0, name.clone())))
+        .filter_map(|device| {
+            device.name.as_ref().map(|name| DeviceListEntry {
+                id: device.id.0,
+                name: name.to_string(),
+                device_type_name: device.device_type.display.clone(),
+                role: device.role.parse_role(),
+            })
+        })
         .collect::<Vec<_>>();
     Ok(devices)
 }

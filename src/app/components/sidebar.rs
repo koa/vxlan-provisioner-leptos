@@ -17,7 +17,7 @@ pub fn SidebarMenu() -> impl IntoView {
                     error!("Error from server: {:?}", e);
                     Vec::new()
                 });
-                devices.sort_by(|(_, a), (_, b)| a.cmp(b));
+                devices.sort_by(|a, b| a.name.cmp(&b.name));
                 devices
             } else {
                 Default::default()
@@ -45,8 +45,9 @@ pub fn SidebarMenu() -> impl IntoView {
                             .get()
                             .iter()
                             .flatten()
-                            .map(|(id, name)| {
-                                view! { <RouterMainMenuEntry icon="router" text=name id=*id /> }
+                            .cloned()
+                            .map(|device| {
+                                view! { <RouterMainMenuEntry device=device /> }
                             })
                             .collect_view()
                     }}
